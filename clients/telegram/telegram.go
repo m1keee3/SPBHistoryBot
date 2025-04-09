@@ -1,7 +1,6 @@
 package telegram
 
 import (
-	"SPBHistoryBot/clients"
 	"SPBHistoryBot/lib/e"
 	"encoding/json"
 	"io"
@@ -12,17 +11,18 @@ import (
 )
 
 const (
-	getUpdatesMethod = "getUpdates"
+	getUpdatesMethod  = "getUpdates"
+	sendMessageMethod = "sendMessage"
 )
 
-type TelegramClient struct {
+type Client struct {
 	host     string
 	basePath string
 	client   *http.Client
 }
 
-func NewTelegramClient(host string, basePath string) TelegramClient {
-	return TelegramClient{
+func NewClient(host string, basePath string) Client {
+	return Client{
 		host:     host,
 		basePath: newBasePath(basePath),
 		client:   &http.Client{},
@@ -33,7 +33,7 @@ func newBasePath(basePath string) string {
 	return "bot" + basePath
 }
 
-func (c *TelegramClient) Updates(offset int, limit int) ([]clients.Update, error) {
+func (c *Client) Updates(offset int, limit int) ([]Update, error) {
 	q := url.Values{}
 	q.Add("offset", strconv.Itoa(offset))
 	q.Add("limit", strconv.Itoa(limit))
@@ -43,7 +43,7 @@ func (c *TelegramClient) Updates(offset int, limit int) ([]clients.Update, error
 		return nil, err
 	}
 
-	var res clients.UpdatesResponse
+	var res UpdatesResponse
 
 	if err := json.Unmarshal(data, &res); err != nil {
 		return nil, err
@@ -52,7 +52,7 @@ func (c *TelegramClient) Updates(offset int, limit int) ([]clients.Update, error
 	return res.Result, nil
 }
 
-func (c *TelegramClient) doRequest(method string, query url.Values) (data []byte, err error) {
+func (c *Client) doRequest(method string, query url.Values) (data []byte, err error) {
 	defer func() { err = e.WrapIfErr("can't do request", err) }()
 	u := url.URL{
 		Scheme: "https",
@@ -80,6 +80,15 @@ func (c *TelegramClient) doRequest(method string, query url.Values) (data []byte
 	return body, nil
 }
 
-func (c *TelegramClient) SendMessage() {
+func (c *Client) SendMessage(chatID int, text string) error {
+	q := url.Values{}
+	q.Add("chat_id", strconv.Itoa(chatID))
+	q.Add("text", text)
 
+	_, err := c.doRequest(sendMessageMethod, q)
+	if err != nil {
+		return e.Wrap("can't send message", err)
+	}
+
+	return nil
 }
