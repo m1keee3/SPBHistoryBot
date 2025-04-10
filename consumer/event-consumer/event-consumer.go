@@ -3,6 +3,7 @@ package event_consumer
 import (
 	"SPBHistoryBot/events"
 	"log"
+	"sync"
 	"time"
 )
 
@@ -44,14 +45,17 @@ func (c *Consumer) Start() error {
 }
 
 func (c *Consumer) handleEvents(events []events.Event) error {
+	wg := sync.WaitGroup{}
 	for _, event := range events {
-		log.Printf("got new event: %s", event.Text)
+		wg.Add(1)
+		go func() {
+			log.Printf("got new event: %s", event.Text)
 
-		if err := c.processor.Process(event); err != nil {
-			log.Printf("can't handle event: %s", err.Error())
+			if err := c.processor.Process(event); err != nil {
+				log.Printf("can't handle event: %s", err.Error())
+			}
+		}()
 
-			continue
-		}
 	}
 	return nil
 }
