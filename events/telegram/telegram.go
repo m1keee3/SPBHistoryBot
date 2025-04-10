@@ -47,6 +47,10 @@ func (p *TgProcessor) Process(event events.Event) error {
 	switch event.Type {
 	case events.Message:
 		return p.processMessage(event)
+
+	case events.Callback:
+		return p.processCallback(event)
+
 	default:
 		return e.Wrap("can't process message", ErrUnknownEventType)
 	}
@@ -58,7 +62,20 @@ func (p *TgProcessor) processMessage(event events.Event) error {
 		return e.Wrap("can't process message", err)
 	}
 
-	if err := p.doCmd(event.Text, meta.ChatId, meta.Username); err != nil {
+	if err := p.sendMsg(event.Text, meta.ChatId, meta.Username); err != nil {
+		return e.Wrap("can't process message", err)
+	}
+
+	return nil
+}
+
+func (p *TgProcessor) processCallback(event events.Event) error {
+	meta, err := event.GetMeta()
+	if err != nil {
+		return e.Wrap("can't process message", err)
+	}
+
+	if err := p.sendCallback(event.Text, meta.ChatId, meta.Username, meta.MessageID); err != nil {
 		return e.Wrap("can't process message", err)
 	}
 
@@ -71,25 +88,41 @@ func event(upd telegram.Update) events.Event {
 		Type: updType,
 		Text: fetchText(upd),
 	}
-	if updType == events.Message {
+	if updType == events.Message && upd.Message != nil {
 		res.Meta = &events.Meta{
-			ChatId:   upd.Message.Chat.ID,
-			Username: upd.Message.From.Username,
+			ChatId:    upd.Message.Chat.ID,
+			Username:  upd.Message.From.Username,
+			MessageID: upd.Message.MessageID,
 		}
 	}
+	if updType == events.Callback && upd.CallbackQuery != nil {
+		res.Meta = &events.Meta{
+			ChatId:    upd.CallbackQuery.From.ID,
+			Username:  upd.CallbackQuery.From.Username,
+			MessageID: upd.CallbackQuery.Message.MessageID,
+		}
+	}
+
 	return res
 }
 
 func fetchType(upd telegram.Update) events.Type {
-	if upd.Message == nil {
+	switch {
+	case upd.Message != nil:
+		return events.Message
+	case upd.CallbackQuery != nil:
+		return events.Callback
+	default:
 		return events.Unknown
 	}
-	return events.Message
 }
 
 func fetchText(upd telegram.Update) string {
-	if upd.Message == nil {
-		return ""
+	if upd.Message != nil {
+		return upd.Message.Text
 	}
-	return upd.Message.Text
+	if upd.CallbackQuery != nil {
+		return upd.CallbackQuery.Data
+	}
+	return ""
 }
