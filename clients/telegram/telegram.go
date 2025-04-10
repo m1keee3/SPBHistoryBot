@@ -21,8 +21,8 @@ type Client struct {
 	client   *http.Client
 }
 
-func NewClient(host string, basePath string) Client {
-	return Client{
+func NewClient(host string, basePath string) *Client {
+	return &Client{
 		host:     host,
 		basePath: newBasePath(basePath),
 		client:   &http.Client{},
