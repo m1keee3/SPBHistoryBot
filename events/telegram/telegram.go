@@ -12,13 +12,7 @@ type TgProcessor struct {
 	offset int
 }
 
-type Meta struct {
-	ChatId   int
-	Username string
-}
-
 var (
-	ErrUnknownMetaType  = errors.New("unknown meta type")
 	ErrUnknownEventType = errors.New("unknown event type")
 )
 
@@ -59,7 +53,7 @@ func (p *TgProcessor) Process(event events.Event) error {
 }
 
 func (p *TgProcessor) processMessage(event events.Event) error {
-	meta, err := meta(event)
+	meta, err := event.GetMeta()
 	if err != nil {
 		return e.Wrap("can't process message", err)
 	}
@@ -71,16 +65,6 @@ func (p *TgProcessor) processMessage(event events.Event) error {
 	return nil
 }
 
-func meta(event events.Event) (Meta, error) {
-	res, ok := event.Meta.(*Meta)
-
-	if !ok {
-		return Meta{}, e.Wrap("can't get meta", ErrUnknownMetaType)
-	}
-
-	return *res, nil
-}
-
 func event(upd telegram.Update) events.Event {
 	updType := fetchType(upd)
 	res := events.Event{
@@ -88,7 +72,7 @@ func event(upd telegram.Update) events.Event {
 		Text: fetchText(upd),
 	}
 	if updType == events.Message {
-		res.Meta = &Meta{
+		res.Meta = &events.Meta{
 			ChatId:   upd.Message.Chat.ID,
 			Username: upd.Message.From.Username,
 		}
