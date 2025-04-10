@@ -54,7 +54,7 @@ func (p *TgProcessor) Process(event events.Event) error {
 	case events.Message:
 		return p.processMessage(event)
 	default:
-		return e.Wrap("can't procces message", ErrUnknownEventType)
+		return e.Wrap("can't process message", ErrUnknownEventType)
 	}
 }
 
