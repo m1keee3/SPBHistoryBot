@@ -4,21 +4,24 @@ import (
 	"SPBHistoryBot/clients/telegram"
 	"SPBHistoryBot/events"
 	"SPBHistoryBot/lib/e"
+	"SPBHistoryBot/lib/storage"
 	"errors"
 )
 
 type TgProcessor struct {
-	tg     *telegram.Client
-	offset int
+	tg      *telegram.Client
+	offset  int
+	storage storage.Storage
 }
 
 var (
 	ErrUnknownEventType = errors.New("unknown event type")
 )
 
-func NewProcessor(client *telegram.Client) *TgProcessor {
+func NewProcessor(client *telegram.Client, storage storage.Storage) *TgProcessor {
 	return &TgProcessor{
-		tg: client,
+		tg:      client,
+		storage: storage,
 	}
 }
 
