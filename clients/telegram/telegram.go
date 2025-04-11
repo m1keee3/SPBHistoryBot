@@ -14,6 +14,8 @@ const (
 	getUpdatesMethod  = "getUpdates"
 	sendMessageMethod = "sendMessage"
 	editMessageMethod = "editMessageText"
+	sendPhotoMethod   = "sendPhoto"
+	editPhotoMethod   = "editMessageMedia"
 )
 
 type Client struct {
@@ -85,6 +87,7 @@ func (c *Client) SendMessageWithButtons(chatID int, text string, keyboard Inline
 	q := url.Values{}
 	q.Add("chat_id", strconv.Itoa(chatID))
 	q.Add("text", text)
+
 	kbjson, err := json.Marshal(keyboard)
 	if err != nil {
 		return e.Wrap("can't marshal keyboard to json", err)
@@ -98,20 +101,26 @@ func (c *Client) SendMessageWithButtons(chatID int, text string, keyboard Inline
 	return nil
 }
 
-func (c *Client) SendMessage(chatID int, text string) error {
+func (c *Client) SendPhotoWithButtons(chatID int, text string, photoURL string, keyboard InlineKeyboardMarkup) error {
 	q := url.Values{}
 	q.Add("chat_id", strconv.Itoa(chatID))
-	q.Add("text", text)
+	q.Add("caption", text)
+	q.Add("photo", photoURL)
 
-	_, err := c.doRequest(sendMessageMethod, q)
+	kbjson, err := json.Marshal(keyboard)
 	if err != nil {
+		return e.Wrap("can't marshal keyboard to json", err)
+	}
+	q.Add("reply_markup", string(kbjson))
+
+	if _, err := c.doRequest(sendPhotoMethod, q); err != nil {
 		return e.Wrap("can't send message", err)
 	}
 
 	return nil
 }
 
-func (c *Client) EditMessageTextWithButtons(chatID int, messageID int, text string, markup InlineKeyboardMarkup) error {
+func (c *Client) EditMessageWithButtons(chatID int, messageID int, text string, markup InlineKeyboardMarkup) error {
 	q := url.Values{}
 	q.Add("chat_id", strconv.Itoa(chatID))
 	q.Add("message_id", strconv.Itoa(messageID))
@@ -127,6 +136,41 @@ func (c *Client) EditMessageTextWithButtons(chatID int, messageID int, text stri
 	_, err = c.doRequest(editMessageMethod, q)
 	if err != nil {
 		return e.Wrap("can't edit message with buttons", err)
+	}
+
+	return nil
+}
+
+func (c *Client) EditPhotoWithButtons(chatID int, messageID int, text string, photoURL string, markup InlineKeyboardMarkup) error {
+	q := url.Values{}
+	q.Add("chat_id", strconv.Itoa(chatID))
+	q.Add("message_id", strconv.Itoa(messageID))
+	q.Add("caption", text)
+	q.Add("photo", photoURL)
+
+	data, err := json.Marshal(markup)
+	if err != nil {
+		return e.Wrap("can't marshal inline keyboard", err)
+	}
+
+	q.Add("reply_markup", string(data))
+
+	_, err = c.doRequest(editPhotoMethod, q)
+	if err != nil {
+		return e.Wrap("can't edit message with buttons", err)
+	}
+
+	return nil
+}
+
+func (c *Client) SendMessage(chatID int, text string) error {
+	q := url.Values{}
+	q.Add("chat_id", strconv.Itoa(chatID))
+	q.Add("text", text)
+
+	_, err := c.doRequest(sendMessageMethod, q)
+	if err != nil {
+		return e.Wrap("can't send message", err)
 	}
 
 	return nil
