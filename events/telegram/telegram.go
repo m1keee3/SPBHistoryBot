@@ -65,7 +65,7 @@ func (p *TgProcessor) processMessage(event events.Event) error {
 		return e.Wrap("can't process message", err)
 	}
 
-	if err := p.sendMsg(event.Text, meta.ChatId, meta.Username); err != nil {
+	if err := p.doCmd(event.Text, meta.ChatId, meta.Username); err != nil {
 		return e.Wrap("can't process message", err)
 	}
 
@@ -78,7 +78,7 @@ func (p *TgProcessor) processCallback(event events.Event) error {
 		return e.Wrap("can't process message", err)
 	}
 
-	if err := p.sendCallback(event.Text, meta.ChatId, meta.Username, meta.MessageID); err != nil {
+	if err := p.doCallbackCmd(event.Text, meta.ChatId, meta.Username, meta.MessageID); err != nil {
 		return e.Wrap("can't process message", err)
 	}
 
