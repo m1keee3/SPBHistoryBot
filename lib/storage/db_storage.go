@@ -28,7 +28,7 @@ func (db *DBStorage) Districts() ([]District, error) {
 	return districts, nil
 }
 
-func (s *DBStorage) PickDistrict(id int) (*District, error) {
+func (s *DBStorage) FindDistrict(id int) (*District, error) {
 	var district District
 	err := s.db.Preload("Places").Where("id = ?", id).First(&district).Error
 	if err != nil {
@@ -37,7 +37,7 @@ func (s *DBStorage) PickDistrict(id int) (*District, error) {
 	return &district, nil
 }
 
-func (s *DBStorage) PickPlace(id int) (*Place, error) {
+func (s *DBStorage) FindPlace(id int) (*Place, error) {
 	var place Place
 	err := s.db.Where("id = ?", id).First(&place).Error
 	if err != nil {
