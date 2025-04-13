@@ -48,33 +48,31 @@ func (p *TgProcessor) doCallbackCmd(cmdText string, chatID int, username string,
 	case GetDistrictsCmd:
 		if len(commands) < 2 {
 			return p.editToDistricts(chatID, messageID, 1)
-		} else {
-			batchNum, err := strconv.Atoi(commands[1])
-			if err != nil {
-				return e.Wrap("can't get batchNum", err)
-			}
-			return p.editToDistricts(chatID, messageID, batchNum)
 		}
+
+		batchNum, err := strconv.Atoi(commands[1])
+		if err != nil {
+			return e.Wrap("can't get batchNum", err)
+		}
+
+		return p.editToDistricts(chatID, messageID, batchNum)
 
 	case DistrictCmd:
-		if len(commands) < 3 {
-			districtId, err := strconv.Atoi(commands[1])
-			if err != nil {
-				return e.Wrap("can't get districtId", err)
-			}
-			return p.editToDistrict(chatID, messageID, districtId, 1)
-		} else {
-			districtId, err := strconv.Atoi(commands[1])
-			if err != nil {
-				return e.Wrap("can't get districtId", err)
-			}
-			batchNum, err := strconv.Atoi(commands[2])
+		if len(commands) < 2 {
+			return p.tg.SendMessage(chatID, "Некорректная команда района")
+		}
+		districtId, err := strconv.Atoi(commands[1])
+		if err != nil {
+			return e.Wrap("can't get districtId", err)
+		}
+		batchNum := 1
+		if len(commands) > 2 {
+			batchNum, err = strconv.Atoi(commands[2])
 			if err != nil {
 				return e.Wrap("can't get batchNum", err)
 			}
-
-			return p.editToDistrict(chatID, messageID, districtId, batchNum)
 		}
+		return p.editToDistrict(chatID, messageID, districtId, batchNum)
 
 	case SendDistrictCmd:
 		districtId, err := strconv.Atoi(commands[1])
