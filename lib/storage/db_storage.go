@@ -22,24 +22,24 @@ func NewDBStorage(dsn string) (*DBStorage, error) {
 
 func (db *DBStorage) Districts() ([]District, error) {
 	var districts []District
-	if err := db.db.Preload("Place").Find(&districts).Error; err != nil {
+	if err := db.db.Preload("Places").Find(&districts).Error; err != nil {
 		return nil, e.Wrap("Failed to get districts", err)
 	}
 	return districts, nil
 }
 
-func (s *DBStorage) PickDistrict(name string) (*District, error) {
+func (s *DBStorage) PickDistrict(id int) (*District, error) {
 	var district District
-	err := s.db.Preload("Places").Where("name = ?", name).First(&district).Error
+	err := s.db.Preload("Places").Where("id = ?", id).First(&district).Error
 	if err != nil {
 		return nil, e.Wrap("Failed to get district", err)
 	}
 	return &district, nil
 }
 
-func (s *DBStorage) PickPlace(name string) (*Place, error) {
+func (s *DBStorage) PickPlace(id int) (*Place, error) {
 	var place Place
-	err := s.db.Where("name = ?", name).First(&place).Error
+	err := s.db.Where("id = ?", id).First(&place).Error
 	if err != nil {
 		return nil, e.Wrap("Failed to get district place", err)
 	}

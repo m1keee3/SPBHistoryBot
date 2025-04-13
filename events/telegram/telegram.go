@@ -77,9 +77,25 @@ func (p *TgProcessor) processCallback(event events.Event) error {
 	if err != nil {
 		return e.Wrap("can't process message", err)
 	}
+	commands := splitCmds(event.Text)
+	for i := 0; i < len(commands); i++ {
+		if (commands[i] == GetDistrictsCmd || commands[i] == DistrictCmd) && len(commands) == i+2 { //Также передаем номер пачки если хотим получить список районов, или имя района если хоти получить раон
+			if err := p.doCallbackCmd(joinCmds(commands[i], commands[i+1]), meta.ChatId, meta.Username, meta.MessageID); err != nil {
+				return e.Wrap("can't process message", err)
+			}
+			break
 
-	if err := p.doCallbackCmd(event.Text, meta.ChatId, meta.Username, meta.MessageID); err != nil {
-		return e.Wrap("can't process message", err)
+		} else if commands[i] == DistrictCmd && len(commands) == i+3 { //Также передаем имя и номер пачки
+			if err := p.doCallbackCmd(joinCmds(commands[i], commands[i+1], commands[i+1]), meta.ChatId, meta.Username, meta.MessageID); err != nil {
+				return e.Wrap("can't process message", err)
+			}
+			break
+		} else {
+			if err := p.doCallbackCmd(commands[i], meta.ChatId, meta.Username, meta.MessageID); err != nil {
+				return e.Wrap("can't process message", err)
+			}
+		}
+
 	}
 
 	return nil

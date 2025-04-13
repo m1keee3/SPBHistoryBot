@@ -2,8 +2,8 @@ package storage
 
 type Storage interface {
 	Districts() ([]District, error)
-	PickDistrict(name string) (*District, error)
-	PickPlace(name string) (*Place, error)
+	PickDistrict(id int) (*District, error)
+	PickPlace(id int) (*Place, error)
 }
 
 type Place struct {
