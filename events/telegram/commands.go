@@ -238,14 +238,7 @@ func (p *TgProcessor) sendPlace(chatID int, placeID int) error {
 }
 
 func joinCmds(commands ...string) string {
-	var res string
-	for i, cmd := range commands {
-		res += cmd
-		if i != len(commands)-1 {
-			res += CmdSplit
-		}
-	}
-	return res
+	return strings.Join(commands, CmdSplit)
 }
 
 func splitCmds(cmdText string) []string {
