@@ -79,14 +79,14 @@ func (p *TgProcessor) processCallback(event events.Event) error {
 	}
 	commands := splitCmds(event.Text)
 	for i := 0; i < len(commands); i++ {
-		if (commands[i] == GetDistrictsCmd || commands[i] == DistrictCmd) && len(commands) == i+2 { //Также передаем номер пачки если хотим получить список районов, или имя района если хоти получить раон
+		if (commands[i] == GetDistrictsCmd || commands[i] == DistrictCmd || commands[i] == PlaceCmd || commands[i] == SendDistrictCmd) && len(commands) == i+2 { //Также передаем номер пачки если хотим получить список районов, или id района если хотим получить район
 			if err := p.doCallbackCmd(joinCmds(commands[i], commands[i+1]), meta.ChatId, meta.Username, meta.MessageID); err != nil {
 				return e.Wrap("can't process message", err)
 			}
 			break
 
-		} else if commands[i] == DistrictCmd && len(commands) == i+3 { //Также передаем имя и номер пачки
-			if err := p.doCallbackCmd(joinCmds(commands[i], commands[i+1], commands[i+1]), meta.ChatId, meta.Username, meta.MessageID); err != nil {
+		} else if commands[i] == DistrictCmd && len(commands) == i+3 { //Также передаем id и номер пачки
+			if err := p.doCallbackCmd(joinCmds(commands[i], commands[i+1], commands[i+2]), meta.ChatId, meta.Username, meta.MessageID); err != nil {
 				return e.Wrap("can't process message", err)
 			}
 			break

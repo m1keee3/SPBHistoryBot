@@ -13,6 +13,7 @@ const (
 	StartCmd        = "/start"
 	GetDistrictsCmd = "/getDistricts"
 	DistrictCmd     = "/district"
+	SendDistrictCmd = "/sendDistrict"
 	PlaceCmd        = "/place"
 	DeleteCmd       = "/delete"
 	CmdSplit        = `//`
@@ -63,16 +64,35 @@ func (p *TgProcessor) doCallbackCmd(cmdText string, chatID int, username string,
 			}
 			return p.editToDistrict(chatID, messageID, districtId, 1)
 		} else {
-			batchNum, err := strconv.Atoi(commands[1])
-			if err != nil {
-				return e.Wrap("can't get batchNum", err)
-			}
-			districtId, err := strconv.Atoi(commands[2])
+			districtId, err := strconv.Atoi(commands[1])
 			if err != nil {
 				return e.Wrap("can't get districtId", err)
 			}
+			batchNum, err := strconv.Atoi(commands[2])
+			if err != nil {
+				return e.Wrap("can't get batchNum", err)
+			}
+
 			return p.editToDistrict(chatID, messageID, districtId, batchNum)
 		}
+
+	case SendDistrictCmd:
+		districtId, err := strconv.Atoi(commands[1])
+		if err != nil {
+			return e.Wrap("can't get districtId", err)
+		}
+		return p.sendDistrict(chatID, districtId)
+
+	case PlaceCmd:
+		placeID, err := strconv.Atoi(commands[1])
+		if err != nil {
+			return e.Wrap("can't get placeId", err)
+		}
+		return p.sendPlace(chatID, placeID)
+
+	case DeleteCmd:
+		return p.tg.DeleteMessage(chatID, messageID)
+
 	default:
 		return p.tg.SendMessage(chatID, callbackUnknown)
 	}
@@ -125,7 +145,7 @@ func (p *TgProcessor) editToDistricts(chatID int, messageID int, batchNum int) e
 	}
 	kbs := make([][]telegram.InlineKeyboardButton, 0, batchButSize+1)
 
-	for i := 0; i < batchNum*batchButSize && i < len(districts); i++ {
+	for i := (batchNum - 1) * batchButSize; i < batchNum*batchButSize && i < len(districts); i++ {
 		kbs = append(kbs, []telegram.InlineKeyboardButton{{Text: districts[i].Name, CallbackData: joinCmds(DistrictCmd, strconv.FormatUint(uint64(districts[i].ID), 10))}})
 	}
 	if batchNum*batchButSize < len(districts) {
@@ -145,23 +165,24 @@ func (p *TgProcessor) editToDistricts(chatID int, messageID int, batchNum int) e
 }
 
 func (p *TgProcessor) editToDistrict(chatID int, messageID int, districtID int, batchNum int) error {
-	district, err := p.storage.PickDistrict(districtID)
+	district, err := p.storage.FindDistrict(districtID)
 	if err != nil {
 		return e.Wrap("can't edit to district", err)
 	}
 	keyboard := make([][]telegram.InlineKeyboardButton, 0, batchButSize+1)
-	for i := 0; i < batchNum*batchButSize && i < len(district.Places); i++ {
-		keyboard = append(keyboard, []telegram.InlineKeyboardButton{{Text: district.Places[i].Name, CallbackData: joinCmds(DeleteCmd, PlaceCmd, district.Places[i].Name)}})
+	for i := (batchNum - 1) * batchButSize; i < batchNum*batchButSize && i < len(district.Places); i++ {
+		keyboard = append(keyboard, []telegram.InlineKeyboardButton{{Text: district.Places[i].Name, CallbackData: joinCmds(DeleteCmd, PlaceCmd, strconv.FormatUint(uint64(district.Places[i].ID), 10))}})
 	}
 
 	backForwardKeys := make([]telegram.InlineKeyboardButton, 0, 2)
-	if batchNum*batchButSize < len(district.Places) {
-		backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: nextBut, CallbackData: joinCmds(GetDistrictsCmd, strconv.Itoa(batchNum+1))})
-	}
 	if batchNum > 1 {
-		backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: backBut, CallbackData: joinCmds(DistrictCmd, strconv.Itoa(batchNum-1))})
+		backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: backBut, CallbackData: joinCmds(DistrictCmd, strconv.FormatUint(uint64(districtID), 10), strconv.Itoa(batchNum-1))})
 	} else {
 		backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: backBut, CallbackData: GetDistrictsCmd})
+	}
+
+	if batchNum*batchButSize < len(district.Places) {
+		backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: nextBut, CallbackData: joinCmds(DistrictCmd, strconv.FormatUint(uint64(districtID), 10), strconv.Itoa(batchNum+1))})
 	}
 
 	keyboard = append(keyboard, backForwardKeys)
@@ -169,6 +190,51 @@ func (p *TgProcessor) editToDistrict(chatID int, messageID int, districtID int, 
 		msgChoosePlace,
 		telegram.InlineKeyboardMarkup{
 			InlineKeyboard: keyboard,
+		},
+	)
+}
+
+func (p *TgProcessor) sendDistrict(chatID int, districtID int) error {
+	district, err := p.storage.FindDistrict(districtID)
+	if err != nil {
+		return e.Wrap("can't edit to district", err)
+	}
+	keyboard := make([][]telegram.InlineKeyboardButton, 0, batchButSize+1)
+	for i := 0; i < batchButSize && i < len(district.Places); i++ {
+		keyboard = append(keyboard, []telegram.InlineKeyboardButton{{Text: district.Places[i].Name, CallbackData: joinCmds(DeleteCmd, PlaceCmd, strconv.FormatUint(uint64(district.Places[i].ID), 10))}})
+	}
+
+	backForwardKeys := make([]telegram.InlineKeyboardButton, 0, 2)
+	backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: backBut, CallbackData: GetDistrictsCmd})
+
+	if batchButSize < len(district.Places) {
+		backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: nextBut, CallbackData: joinCmds(DistrictCmd, strconv.FormatUint(uint64(districtID), 10), strconv.Itoa(2))})
+	}
+
+	keyboard = append(keyboard, backForwardKeys)
+	return p.tg.SendMessageWithButtons(chatID,
+		msgChoosePlace,
+		telegram.InlineKeyboardMarkup{
+			InlineKeyboard: keyboard,
+		},
+	)
+}
+
+func (p *TgProcessor) sendPlace(chatID int, placeID int) error {
+	place, err := p.storage.FindPlace(placeID)
+	if err != nil {
+		return e.Wrap("can't find a place", err)
+	}
+
+	return p.tg.SendPhotoWithButtons(chatID,
+		place.Name+"\n\n"+place.Text,
+		place.Image,
+		telegram.InlineKeyboardMarkup{
+			InlineKeyboard: [][]telegram.InlineKeyboardButton{
+				{
+					{Text: backBut, CallbackData: joinCmds(DeleteCmd, SendDistrictCmd, strconv.FormatUint(uint64(place.DistrictID), 10))},
+				},
+			},
 		},
 	)
 }

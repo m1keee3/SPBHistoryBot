@@ -11,11 +11,12 @@ import (
 )
 
 const (
-	getUpdatesMethod  = "getUpdates"
-	sendMessageMethod = "sendMessage"
-	editMessageMethod = "editMessageText"
-	sendPhotoMethod   = "sendPhoto"
-	editPhotoMethod   = "editMessageMedia"
+	getUpdatesMethod    = "getUpdates"
+	sendMessageMethod   = "sendMessage"
+	editMessageMethod   = "editMessageText"
+	sendPhotoMethod     = "sendPhoto"
+	editPhotoMethod     = "editMessageMedia"
+	deleteMessageMethod = "deleteMessage"
 )
 
 type Client struct {
@@ -155,8 +156,7 @@ func (c *Client) EditPhotoWithButtons(chatID int, messageID int, text string, ph
 
 	q.Add("reply_markup", string(data))
 
-	_, err = c.doRequest(editPhotoMethod, q)
-	if err != nil {
+	if _, err := c.doRequest(editPhotoMethod, q); err != nil {
 		return e.Wrap("can't edit message with buttons", err)
 	}
 
@@ -168,9 +168,20 @@ func (c *Client) SendMessage(chatID int, text string) error {
 	q.Add("chat_id", strconv.Itoa(chatID))
 	q.Add("text", text)
 
-	_, err := c.doRequest(sendMessageMethod, q)
-	if err != nil {
+	if _, err := c.doRequest(sendMessageMethod, q); err != nil {
 		return e.Wrap("can't send message", err)
+	}
+
+	return nil
+}
+
+func (c *Client) DeleteMessage(chatID int, messageID int) error {
+	q := url.Values{}
+	q.Add("chat_id", strconv.Itoa(chatID))
+	q.Add("message_id", strconv.Itoa(messageID))
+
+	if _, err := c.doRequest(deleteMessageMethod, q); err != nil {
+		return e.Wrap("can't delete message", err)
 	}
 
 	return nil
