@@ -49,6 +49,7 @@ func (c *Consumer) handleEvents(events []events.Event) error {
 	for _, event := range events {
 		wg.Add(1)
 		go func() {
+			defer wg.Done()
 			log.Printf("got new event: %s", event.Text)
 
 			if err := c.processor.Process(event); err != nil {
@@ -57,5 +58,6 @@ func (c *Consumer) handleEvents(events []events.Event) error {
 		}()
 
 	}
+	wg.Wait()
 	return nil
 }
