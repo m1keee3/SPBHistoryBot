@@ -84,7 +84,7 @@ func (c *Client) doRequest(method string, query url.Values) (data []byte, err er
 	return body, nil
 }
 
-func (c *Client) SendMessageWithButtons(chatID int, text string, keyboard InlineKeyboardMarkup) error {
+func (c *Client) SendMessage(chatID int, text string, keyboard InlineKeyboardMarkup) error {
 	q := url.Values{}
 	q.Add("chat_id", strconv.Itoa(chatID))
 	q.Add("text", text)
@@ -102,7 +102,7 @@ func (c *Client) SendMessageWithButtons(chatID int, text string, keyboard Inline
 	return nil
 }
 
-func (c *Client) SendPhotoWithButtons(chatID int, text string, photoURL string, keyboard InlineKeyboardMarkup) error {
+func (c *Client) SendPhoto(chatID int, text string, photoURL string, keyboard InlineKeyboardMarkup) error {
 	q := url.Values{}
 	q.Add("chat_id", strconv.Itoa(chatID))
 	q.Add("caption", text)
@@ -121,7 +121,7 @@ func (c *Client) SendPhotoWithButtons(chatID int, text string, photoURL string, 
 	return nil
 }
 
-func (c *Client) EditMessageWithButtons(chatID int, messageID int, text string, markup InlineKeyboardMarkup) error {
+func (c *Client) EditMessage(chatID int, messageID int, text string, markup InlineKeyboardMarkup) error {
 	q := url.Values{}
 	q.Add("chat_id", strconv.Itoa(chatID))
 	q.Add("message_id", strconv.Itoa(messageID))
@@ -142,7 +142,7 @@ func (c *Client) EditMessageWithButtons(chatID int, messageID int, text string, 
 	return nil
 }
 
-func (c *Client) EditPhotoWithButtons(chatID int, messageID int, text string, photoURL string, markup InlineKeyboardMarkup) error {
+func (c *Client) EditPhoto(chatID int, messageID int, text string, photoURL string, markup InlineKeyboardMarkup) error {
 	q := url.Values{}
 	q.Add("chat_id", strconv.Itoa(chatID))
 	q.Add("message_id", strconv.Itoa(messageID))
@@ -163,7 +163,7 @@ func (c *Client) EditPhotoWithButtons(chatID int, messageID int, text string, ph
 	return nil
 }
 
-func (c *Client) SendMessage(chatID int, text string) error {
+func (c *Client) SendNoButtonsMessage(chatID int, text string) error {
 	q := url.Values{}
 	q.Add("chat_id", strconv.Itoa(chatID))
 	q.Add("text", text)
