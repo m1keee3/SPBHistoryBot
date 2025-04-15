@@ -9,24 +9,26 @@ import (
 )
 
 type TgProcessor struct {
-	tg      *telegram.Client
-	offset  int
-	storage storage.Storage
+	tgFetcher telegram.UpdatesService
+	tgSender  telegram.MessageService
+	offset    int
+	storage   storage.Storage
 }
 
 var (
 	ErrUnknownEventType = errors.New("unknown event type")
 )
 
-func NewProcessor(client *telegram.Client, storage storage.Storage) *TgProcessor {
+func NewProcessor(fetcher telegram.UpdatesService, sender telegram.MessageService, storage storage.Storage) *TgProcessor {
 	return &TgProcessor{
-		tg:      client,
-		storage: storage,
+		tgFetcher: fetcher,
+		tgSender:  sender,
+		storage:   storage,
 	}
 }
 
 func (p *TgProcessor) Fetch(limit int) ([]events.Event, error) {
-	updates, err := p.tg.Updates(p.offset, limit)
+	updates, err := p.tgFetcher.Updates(p.offset, limit)
 	if err != nil {
 		return nil, e.Wrap("failed to fetch telegram updates", err)
 	}

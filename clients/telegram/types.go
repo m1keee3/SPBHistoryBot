@@ -1,5 +1,18 @@
 package telegram
 
+type UpdatesService interface {
+	Updates(offset int, limit int) ([]Update, error)
+}
+
+type MessageService interface {
+	SendMessage(chatID int, text string, keyboard InlineKeyboardMarkup) error
+	SendPhoto(chatID int, text string, photoURL string, keyboard InlineKeyboardMarkup) error
+	EditMessage(chatID int, messageID int, text string, markup InlineKeyboardMarkup) error
+	EditPhoto(chatID int, messageID int, text string, photoURL string, markup InlineKeyboardMarkup) error
+	SendNoButtonsMessage(chatID int, text string) error
+	DeleteMessage(chatID int, messageID int) error
+}
+
 type UpdatesResponse struct {
 	Ok     bool     `json:"ok"`
 	Result []Update `json:"result"`

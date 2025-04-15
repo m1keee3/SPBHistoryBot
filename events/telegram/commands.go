@@ -28,7 +28,7 @@ func (p *TgProcessor) doCmd(cmdText string, chatID int, username string) error {
 	case StartCmd:
 		return p.sendHello(chatID)
 	default:
-		return p.tg.SendNoButtonsMessage(chatID, msgUnknown)
+		return p.tgSender.SendNoButtonsMessage(chatID, msgUnknown)
 	}
 }
 
@@ -59,7 +59,7 @@ func (p *TgProcessor) doCallbackCmd(cmdText string, chatID int, username string,
 
 	case DistrictCmd:
 		if len(commands) < 2 {
-			return p.tg.SendNoButtonsMessage(chatID, "Некорректная команда района")
+			return p.tgSender.SendNoButtonsMessage(chatID, "Некорректная команда района")
 		}
 		districtId, err := strconv.Atoi(commands[1])
 		if err != nil {
@@ -89,15 +89,15 @@ func (p *TgProcessor) doCallbackCmd(cmdText string, chatID int, username string,
 		return p.sendPlace(chatID, placeID)
 
 	case DeleteCmd:
-		return p.tg.DeleteMessage(chatID, messageID)
+		return p.tgSender.DeleteMessage(chatID, messageID)
 
 	default:
-		return p.tg.SendNoButtonsMessage(chatID, callbackUnknown)
+		return p.tgSender.SendNoButtonsMessage(chatID, callbackUnknown)
 	}
 }
 
 func (p *TgProcessor) sendHello(chatID int) error {
-	return p.tg.SendMessage(chatID,
+	return p.tgSender.SendMessage(chatID,
 		msgHello,
 		telegram.InlineKeyboardMarkup{
 			InlineKeyboard: [][]telegram.InlineKeyboardButton{
@@ -111,7 +111,7 @@ func (p *TgProcessor) sendHello(chatID int) error {
 }
 
 func (p *TgProcessor) editToHelp(chatID int, messageID int) error {
-	return p.tg.EditMessage(chatID, messageID, msgHelp,
+	return p.tgSender.EditMessage(chatID, messageID, msgHelp,
 		telegram.InlineKeyboardMarkup{
 			InlineKeyboard: [][]telegram.InlineKeyboardButton{
 				{
@@ -123,7 +123,7 @@ func (p *TgProcessor) editToHelp(chatID int, messageID int) error {
 }
 
 func (p *TgProcessor) editToHello(chatID int, messageID int) error {
-	return p.tg.EditMessage(chatID, messageID,
+	return p.tgSender.EditMessage(chatID, messageID,
 		msgHello,
 		telegram.InlineKeyboardMarkup{
 			InlineKeyboard: [][]telegram.InlineKeyboardButton{
@@ -154,7 +154,7 @@ func (p *TgProcessor) editToDistricts(chatID int, messageID int, batchNum int) e
 	} else {
 		kbs = append(kbs, []telegram.InlineKeyboardButton{{Text: backBut, CallbackData: StartCmd}})
 	}
-	return p.tg.EditMessage(chatID, messageID,
+	return p.tgSender.EditMessage(chatID, messageID,
 		msgChooseDistrict,
 		telegram.InlineKeyboardMarkup{
 			InlineKeyboard: kbs,
@@ -184,7 +184,7 @@ func (p *TgProcessor) editToDistrict(chatID int, messageID int, districtID int, 
 	}
 
 	keyboard = append(keyboard, backForwardKeys)
-	return p.tg.EditMessage(chatID, messageID,
+	return p.tgSender.EditMessage(chatID, messageID,
 		msgChoosePlace,
 		telegram.InlineKeyboardMarkup{
 			InlineKeyboard: keyboard,
@@ -210,7 +210,7 @@ func (p *TgProcessor) sendDistrict(chatID int, districtID int) error {
 	}
 
 	keyboard = append(keyboard, backForwardKeys)
-	return p.tg.SendMessage(chatID,
+	return p.tgSender.SendMessage(chatID,
 		msgChoosePlace,
 		telegram.InlineKeyboardMarkup{
 			InlineKeyboard: keyboard,
@@ -224,7 +224,7 @@ func (p *TgProcessor) sendPlace(chatID int, placeID int) error {
 		return e.Wrap("can't find a place", err)
 	}
 
-	return p.tg.SendPhoto(chatID,
+	return p.tgSender.SendPhoto(chatID,
 		place.Name+"\n\n"+place.Text,
 		place.Image,
 		telegram.InlineKeyboardMarkup{
