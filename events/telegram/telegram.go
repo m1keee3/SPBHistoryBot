@@ -8,7 +8,7 @@ import (
 	"errors"
 )
 
-type TgProcessor struct {
+type Processor struct {
 	tgFetcher telegram.UpdatesService
 	tgSender  telegram.MessageService
 	offset    int
@@ -19,15 +19,15 @@ var (
 	ErrUnknownEventType = errors.New("unknown event type")
 )
 
-func NewProcessor(fetcher telegram.UpdatesService, sender telegram.MessageService, storage storage.Storage) *TgProcessor {
-	return &TgProcessor{
+func NewProcessor(fetcher telegram.UpdatesService, sender telegram.MessageService, storage storage.Storage) *Processor {
+	return &Processor{
 		tgFetcher: fetcher,
 		tgSender:  sender,
 		storage:   storage,
 	}
 }
 
-func (p *TgProcessor) Fetch(limit int) ([]events.Event, error) {
+func (p *Processor) Fetch(limit int) ([]events.Event, error) {
 	updates, err := p.tgFetcher.Updates(p.offset, limit)
 	if err != nil {
 		return nil, e.Wrap("failed to fetch telegram updates", err)
@@ -48,7 +48,7 @@ func (p *TgProcessor) Fetch(limit int) ([]events.Event, error) {
 	return res, nil
 }
 
-func (p *TgProcessor) Process(event events.Event) error {
+func (p *Processor) Process(event events.Event) error {
 	switch event.Type {
 	case events.Message:
 		return p.processMessage(event)
@@ -61,7 +61,7 @@ func (p *TgProcessor) Process(event events.Event) error {
 	}
 }
 
-func (p *TgProcessor) processMessage(event events.Event) error {
+func (p *Processor) processMessage(event events.Event) error {
 	meta, err := event.GetMeta()
 	if err != nil {
 		return e.Wrap("can't process message", err)
@@ -74,7 +74,7 @@ func (p *TgProcessor) processMessage(event events.Event) error {
 	return nil
 }
 
-func (p *TgProcessor) processCallback(event events.Event) error {
+func (p *Processor) processCallback(event events.Event) error {
 	meta, err := event.GetMeta()
 	if err != nil {
 		return e.Wrap("can't process message", err)

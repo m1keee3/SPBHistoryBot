@@ -20,7 +20,7 @@ const (
 	batchButSize    = 4
 )
 
-func (p *TgProcessor) doCmd(cmdText string, chatID int, username string) error {
+func (p *Processor) doCmd(cmdText string, chatID int, username string) error {
 	cmdText = strings.TrimSpace(cmdText)
 
 	log.Printf("got new command: %s, from: %s", cmdText, username)
@@ -32,7 +32,7 @@ func (p *TgProcessor) doCmd(cmdText string, chatID int, username string) error {
 	}
 }
 
-func (p *TgProcessor) doCallbackCmd(cmdText string, chatID int, username string, messageID int) error {
+func (p *Processor) doCallbackCmd(cmdText string, chatID int, username string, messageID int) error {
 
 	commands := splitCmds(cmdText)
 
@@ -96,7 +96,7 @@ func (p *TgProcessor) doCallbackCmd(cmdText string, chatID int, username string,
 	}
 }
 
-func (p *TgProcessor) sendHello(chatID int) error {
+func (p *Processor) sendHello(chatID int) error {
 	return p.tgSender.SendMessage(chatID,
 		msgHello,
 		telegram.InlineKeyboardMarkup{
@@ -110,7 +110,7 @@ func (p *TgProcessor) sendHello(chatID int) error {
 	)
 }
 
-func (p *TgProcessor) editToHelp(chatID int, messageID int) error {
+func (p *Processor) editToHelp(chatID int, messageID int) error {
 	return p.tgSender.EditMessage(chatID, messageID, msgHelp,
 		telegram.InlineKeyboardMarkup{
 			InlineKeyboard: [][]telegram.InlineKeyboardButton{
@@ -122,7 +122,7 @@ func (p *TgProcessor) editToHelp(chatID int, messageID int) error {
 	)
 }
 
-func (p *TgProcessor) editToHello(chatID int, messageID int) error {
+func (p *Processor) editToHello(chatID int, messageID int) error {
 	return p.tgSender.EditMessage(chatID, messageID,
 		msgHello,
 		telegram.InlineKeyboardMarkup{
@@ -136,7 +136,7 @@ func (p *TgProcessor) editToHello(chatID int, messageID int) error {
 	)
 }
 
-func (p *TgProcessor) editToDistricts(chatID int, messageID int, batchNum int) error {
+func (p *Processor) editToDistricts(chatID int, messageID int, batchNum int) error {
 	districts, err := p.storage.Districts()
 	if err != nil {
 		return e.Wrap("can't edit to districts", err)
@@ -162,7 +162,7 @@ func (p *TgProcessor) editToDistricts(chatID int, messageID int, batchNum int) e
 	)
 }
 
-func (p *TgProcessor) editToDistrict(chatID int, messageID int, districtID int, batchNum int) error {
+func (p *Processor) editToDistrict(chatID int, messageID int, districtID int, batchNum int) error {
 	district, err := p.storage.FindDistrict(districtID)
 	if err != nil {
 		return e.Wrap("can't edit to district", err)
@@ -192,7 +192,7 @@ func (p *TgProcessor) editToDistrict(chatID int, messageID int, districtID int, 
 	)
 }
 
-func (p *TgProcessor) sendDistrict(chatID int, districtID int) error {
+func (p *Processor) sendDistrict(chatID int, districtID int) error {
 	district, err := p.storage.FindDistrict(districtID)
 	if err != nil {
 		return e.Wrap("can't edit to district", err)
@@ -218,7 +218,7 @@ func (p *TgProcessor) sendDistrict(chatID int, districtID int) error {
 	)
 }
 
-func (p *TgProcessor) sendPlace(chatID int, placeID int) error {
+func (p *Processor) sendPlace(chatID int, placeID int) error {
 	place, err := p.storage.FindPlace(placeID)
 	if err != nil {
 		return e.Wrap("can't find a place", err)
