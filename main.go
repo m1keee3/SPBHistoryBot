@@ -41,7 +41,8 @@ func main() {
 		log.Print(err)
 	}
 
-	eventsProcessor := telegram.NewProcessor(tgClient.NewClient(tgBotHost, mustToken()), db)
+	client := tgClient.NewClient(tgBotHost, mustToken())
+	eventsProcessor := telegram.NewProcessor(client, client, db)
 	log.Print("service started")
 
 	consumer := event_consumer.NewConsumer(eventsProcessor, eventsProcessor, batchSize)
