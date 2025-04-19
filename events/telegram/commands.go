@@ -28,7 +28,7 @@ func (p *Processor) doCmd(cmdText string, chatID int, username string) error {
 	case StartCmd:
 		return p.sendHello(chatID)
 	default:
-		return p.tgSender.SendNoButtonsMessage(chatID, msgUnknown)
+		return p.tgSender.SendNoButtonsMessage(chatID, MsgUnknown)
 	}
 }
 
@@ -92,18 +92,18 @@ func (p *Processor) doCallbackCmd(cmdText string, chatID int, username string, m
 		return p.tgSender.DeleteMessage(chatID, messageID)
 
 	default:
-		return p.tgSender.SendNoButtonsMessage(chatID, callbackUnknown)
+		return p.tgSender.SendNoButtonsMessage(chatID, CallbackUnknown)
 	}
 }
 
 func (p *Processor) sendHello(chatID int) error {
 	return p.tgSender.SendMessage(chatID,
-		msgHello,
+		MsgHello,
 		telegram.InlineKeyboardMarkup{
 			InlineKeyboard: [][]telegram.InlineKeyboardButton{
 				{
-					{Text: districtsBut, CallbackData: GetDistrictsCmd},
-					{Text: hlpBut, CallbackData: HelpCmd},
+					{Text: DistrictsBut, CallbackData: GetDistrictsCmd},
+					{Text: HelpBut, CallbackData: HelpCmd},
 				},
 			},
 		},
@@ -111,11 +111,11 @@ func (p *Processor) sendHello(chatID int) error {
 }
 
 func (p *Processor) editToHelp(chatID int, messageID int) error {
-	return p.tgSender.EditMessage(chatID, messageID, msgHelp,
+	return p.tgSender.EditMessage(chatID, messageID, MsgHelp,
 		telegram.InlineKeyboardMarkup{
 			InlineKeyboard: [][]telegram.InlineKeyboardButton{
 				{
-					{Text: backBut, CallbackData: StartCmd},
+					{Text: BackBut, CallbackData: StartCmd},
 				},
 			},
 		},
@@ -124,12 +124,12 @@ func (p *Processor) editToHelp(chatID int, messageID int) error {
 
 func (p *Processor) editToHello(chatID int, messageID int) error {
 	return p.tgSender.EditMessage(chatID, messageID,
-		msgHello,
+		MsgHello,
 		telegram.InlineKeyboardMarkup{
 			InlineKeyboard: [][]telegram.InlineKeyboardButton{
 				{
-					{Text: districtsBut, CallbackData: GetDistrictsCmd},
-					{Text: hlpBut, CallbackData: HelpCmd},
+					{Text: DistrictsBut, CallbackData: GetDistrictsCmd},
+					{Text: HelpBut, CallbackData: HelpCmd},
 				},
 			},
 		},
@@ -147,15 +147,15 @@ func (p *Processor) editToDistricts(chatID int, messageID int, batchNum int) err
 		kbs = append(kbs, []telegram.InlineKeyboardButton{{Text: districts[i].Name, CallbackData: joinCmds(DistrictCmd, strconv.FormatUint(uint64(districts[i].ID), 10))}})
 	}
 	if batchNum*batchButSize < len(districts) {
-		kbs = append(kbs, []telegram.InlineKeyboardButton{{Text: nextBut, CallbackData: joinCmds(GetDistrictsCmd, strconv.Itoa(batchNum+1))}})
+		kbs = append(kbs, []telegram.InlineKeyboardButton{{Text: NextBut, CallbackData: joinCmds(GetDistrictsCmd, strconv.Itoa(batchNum+1))}})
 	}
 	if batchNum > 1 {
-		kbs = append(kbs, []telegram.InlineKeyboardButton{{Text: backBut, CallbackData: joinCmds(GetDistrictsCmd, strconv.Itoa(batchNum-1))}})
+		kbs = append(kbs, []telegram.InlineKeyboardButton{{Text: BackBut, CallbackData: joinCmds(GetDistrictsCmd, strconv.Itoa(batchNum-1))}})
 	} else {
-		kbs = append(kbs, []telegram.InlineKeyboardButton{{Text: backBut, CallbackData: StartCmd}})
+		kbs = append(kbs, []telegram.InlineKeyboardButton{{Text: BackBut, CallbackData: StartCmd}})
 	}
 	return p.tgSender.EditMessage(chatID, messageID,
-		msgChooseDistrict,
+		MsgChooseDistrict,
 		telegram.InlineKeyboardMarkup{
 			InlineKeyboard: kbs,
 		},
@@ -174,18 +174,18 @@ func (p *Processor) editToDistrict(chatID int, messageID int, districtID int, ba
 
 	backForwardKeys := make([]telegram.InlineKeyboardButton, 0, 2)
 	if batchNum > 1 {
-		backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: backBut, CallbackData: joinCmds(DistrictCmd, strconv.FormatUint(uint64(districtID), 10), strconv.Itoa(batchNum-1))})
+		backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: BackBut, CallbackData: joinCmds(DistrictCmd, strconv.FormatUint(uint64(districtID), 10), strconv.Itoa(batchNum-1))})
 	} else {
-		backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: backBut, CallbackData: GetDistrictsCmd})
+		backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: BackBut, CallbackData: GetDistrictsCmd})
 	}
 
 	if batchNum*batchButSize < len(district.Places) {
-		backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: nextBut, CallbackData: joinCmds(DistrictCmd, strconv.FormatUint(uint64(districtID), 10), strconv.Itoa(batchNum+1))})
+		backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: NextBut, CallbackData: joinCmds(DistrictCmd, strconv.FormatUint(uint64(districtID), 10), strconv.Itoa(batchNum+1))})
 	}
 
 	keyboard = append(keyboard, backForwardKeys)
 	return p.tgSender.EditMessage(chatID, messageID,
-		msgChoosePlace,
+		MsgChoosePlace,
 		telegram.InlineKeyboardMarkup{
 			InlineKeyboard: keyboard,
 		},
@@ -203,15 +203,15 @@ func (p *Processor) sendDistrict(chatID int, districtID int) error {
 	}
 
 	backForwardKeys := make([]telegram.InlineKeyboardButton, 0, 2)
-	backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: backBut, CallbackData: GetDistrictsCmd})
+	backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: BackBut, CallbackData: GetDistrictsCmd})
 
 	if batchButSize < len(district.Places) {
-		backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: nextBut, CallbackData: joinCmds(DistrictCmd, strconv.FormatUint(uint64(districtID), 10), strconv.Itoa(2))})
+		backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: NextBut, CallbackData: joinCmds(DistrictCmd, strconv.FormatUint(uint64(districtID), 10), strconv.Itoa(2))})
 	}
 
 	keyboard = append(keyboard, backForwardKeys)
 	return p.tgSender.SendMessage(chatID,
-		msgChoosePlace,
+		MsgChoosePlace,
 		telegram.InlineKeyboardMarkup{
 			InlineKeyboard: keyboard,
 		},
@@ -230,7 +230,7 @@ func (p *Processor) sendPlace(chatID int, placeID int) error {
 		telegram.InlineKeyboardMarkup{
 			InlineKeyboard: [][]telegram.InlineKeyboardButton{
 				{
-					{Text: backBut, CallbackData: joinCmds(DeleteCmd, SendDistrictCmd, strconv.FormatUint(uint64(place.DistrictID), 10))},
+					{Text: BackBut, CallbackData: joinCmds(DeleteCmd, SendDistrictCmd, strconv.FormatUint(uint64(place.DistrictID), 10))},
 				},
 			},
 		},
