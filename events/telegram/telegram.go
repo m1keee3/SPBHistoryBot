@@ -79,22 +79,14 @@ func (p *Processor) processCallback(event events.Event) error {
 	if err != nil {
 		return e.Wrap("can't process message", err)
 	}
-	commands := splitCmds(event.Text)
-	for i := 0; i < len(commands); i++ {
-		if commands[i] != DeleteCmd { //За командой удаления сообщения могут идти другие команды
-			if err := p.doCallbackCmd(joinCmds(commands[i:]...), meta.ChatId, meta.Username, meta.MessageID); err != nil {
-				return e.Wrap("can't process message", err)
-			}
-			break
 
-		} else {
-			if err := p.doCallbackCmd(commands[i], meta.ChatId, meta.Username, meta.MessageID); err != nil {
-				return e.Wrap("can't process message", err)
-			}
+	commands := events.DecodeCommands(event.Text)
+
+	for _, command := range commands {
+		if err := p.doCallbackCmd(command, meta.ChatId, meta.Username, meta.MessageID); err != nil {
+			return e.Wrap("can't process callback", err)
 		}
-
 	}
-
 	return nil
 }
 
