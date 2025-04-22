@@ -180,7 +180,7 @@ func (p *Processor) editToDistrict(chatID int, messageID int, districtID int, ba
 			Batch:      batchNum - 1,
 		})})
 	} else {
-		backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: BackBut, CallbackData: events.EncodeCommands(deleteCmd, events.Command{
+		backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: BackBut, CallbackData: events.EncodeCommands(events.Command{
 			Cmd: GetDistrictsCmd,
 		})})
 	}
