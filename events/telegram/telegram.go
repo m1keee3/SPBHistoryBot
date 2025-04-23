@@ -53,6 +53,9 @@ func (p *Processor) Process(event events.Event) error {
 	case events.Message:
 		return p.processMessage(event)
 
+	case events.Location:
+		return p.processLocation(event)
+
 	case events.Callback:
 		return p.processCallback(event)
 
@@ -67,7 +70,20 @@ func (p *Processor) processMessage(event events.Event) error {
 		return e.Wrap("can't process message", err)
 	}
 
-	if err := p.doCmd(event.Text, meta.ChatId, meta.Username); err != nil {
+	if err := p.doCmd(event.Text, meta); err != nil {
+		return e.Wrap("can't process message", err)
+	}
+
+	return nil
+}
+
+func (p *Processor) processLocation(event events.Event) error {
+	meta, err := event.GetMeta()
+	if err != nil {
+		return e.Wrap("can't process message", err)
+	}
+
+	if err := p.doCmd(RequestLocationCmd, meta); err != nil {
 		return e.Wrap("can't process message", err)
 	}
 
@@ -83,7 +99,7 @@ func (p *Processor) processCallback(event events.Event) error {
 	commands := events.DecodeCommands(event.Text)
 
 	for _, command := range commands {
-		if err := p.doCallbackCmd(command, meta.ChatId, meta.Username, meta.MessageID); err != nil {
+		if err := p.doCallbackCmd(command, meta.ChatID, meta.Username, meta.MessageID); err != nil {
 			return e.Wrap("can't process callback", err)
 		}
 	}
@@ -98,14 +114,23 @@ func event(upd telegram.Update) events.Event {
 	}
 	if updType == events.Message && upd.Message != nil {
 		res.Meta = &events.Meta{
-			ChatId:    upd.Message.Chat.ID,
+			ChatID:    upd.Message.Chat.ID,
 			Username:  upd.Message.From.Username,
 			MessageID: upd.Message.MessageID,
 		}
 	}
+	if updType == events.Location && upd.Message.Location != nil {
+		res.Meta = &events.Meta{
+			ChatID:    upd.Message.Chat.ID,
+			Username:  upd.Message.From.Username,
+			MessageID: upd.Message.MessageID,
+			Latitude:  upd.Message.Location.Latitude,
+			Longitude: upd.Message.Location.Longitude,
+		}
+	}
 	if updType == events.Callback && upd.CallbackQuery != nil {
 		res.Meta = &events.Meta{
-			ChatId:    upd.CallbackQuery.From.ID,
+			ChatID:    upd.CallbackQuery.From.ID,
 			Username:  upd.CallbackQuery.From.Username,
 			MessageID: upd.CallbackQuery.Message.MessageID,
 		}
@@ -117,6 +142,9 @@ func event(upd telegram.Update) events.Event {
 func fetchType(upd telegram.Update) events.Type {
 	switch {
 	case upd.Message != nil:
+		if upd.Message.Location != nil {
+			return events.Location
+		}
 		return events.Message
 	case upd.CallbackQuery != nil:
 		return events.Callback

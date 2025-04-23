@@ -4,6 +4,7 @@ type Storage interface {
 	Districts() ([]District, error)
 	FindDistrict(id int) (*District, error)
 	FindPlace(id int) (*Place, error)
+	FindNearPlace(latitude float64, longitude float64) (*Place, error)
 }
 
 type Place struct {

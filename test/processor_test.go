@@ -20,13 +20,16 @@ func TestProcessor_Process_StartCommand(t *testing.T) {
 		Type: events.Message,
 		Text: "/start",
 		Meta: &events.Meta{
-			ChatId:   123,
+			ChatID:   123,
 			Username: "testuser",
 		},
 	}
 
 	expectedKeyboard := tgClient.InlineKeyboardMarkup{
 		InlineKeyboard: [][]tgClient.InlineKeyboardButton{
+			{
+				{Text: telegram.LocationBut, CallbackData: events.EncodeCommands(events.Command{Cmd: telegram.LocationHelpCmd})},
+			},
 			{
 				{Text: telegram.DistrictsBut, CallbackData: events.EncodeCommands(events.Command{Cmd: telegram.GetDistrictsCmd})},
 				{Text: telegram.HelpBut, CallbackData: events.EncodeCommands(events.Command{Cmd: telegram.HelpCmd})},

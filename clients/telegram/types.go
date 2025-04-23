@@ -25,10 +25,11 @@ type Update struct {
 }
 
 type IncomingMessage struct {
-	MessageID int    `json:"message_id"`
-	Text      string `json:"text"`
-	From      User   `json:"from"`
-	Chat      Chat   `json:"chat"`
+	MessageID int       `json:"message_id"`
+	Text      string    `json:"text"`
+	From      User      `json:"from"`
+	Chat      Chat      `json:"chat"`
+	Location  *Location `json:"location,omitempty"`
 }
 
 type CallbackQuery struct {
@@ -46,6 +47,12 @@ type User struct {
 type Chat struct {
 	ID int `json:"id"`
 }
+
+type Location struct {
+	Longitude float64 `json:"longitude"`
+	Latitude  float64 `json:"latitude"`
+}
+
 type InlineKeyboardButton struct {
 	Text         string `json:"text"`
 	CallbackData string `json:"callback_data"`
