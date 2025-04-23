@@ -23,3 +23,8 @@ func (m *Storage) FindPlace(id int) (*storage.Place, error) {
 	args := m.Called(id)
 	return args.Get(0).(*storage.Place), args.Error(1)
 }
+
+func (m *Storage) FindNearPlace(latitude float64, longitude float64) (*storage.Place, error) {
+	args := m.Called(latitude, longitude)
+	return args.Get(0).(*storage.Place), args.Error(1)
+}
