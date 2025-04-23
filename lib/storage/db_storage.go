@@ -2,8 +2,11 @@ package storage
 
 import (
 	"SPBHistoryBot/lib/e"
+	"errors"
+	"github.com/umahmood/haversine"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"math"
 )
 
 type DBStorage struct {
@@ -28,20 +31,47 @@ func (db *DBStorage) Districts() ([]District, error) {
 	return districts, nil
 }
 
-func (s *DBStorage) FindDistrict(id int) (*District, error) {
+func (db *DBStorage) FindDistrict(id int) (*District, error) {
 	var district District
-	err := s.db.Preload("Places").Where("id = ?", id).First(&district).Error
+	err := db.db.Preload("Places").Where("id = ?", id).First(&district).Error
 	if err != nil {
 		return nil, e.Wrap("Failed to get district", err)
 	}
 	return &district, nil
 }
 
-func (s *DBStorage) FindPlace(id int) (*Place, error) {
+func (db *DBStorage) FindPlace(id int) (*Place, error) {
 	var place Place
-	err := s.db.Where("id = ?", id).First(&place).Error
+	err := db.db.Where("id = ?", id).First(&place).Error
 	if err != nil {
 		return nil, e.Wrap("Failed to get district place", err)
 	}
 	return &place, nil
+}
+
+func (db *DBStorage) FindNearPlace(latitude float64, longitude float64) (*Place, error) {
+	var places []Place
+	if err := db.db.Find(&places).Error; err != nil {
+		return nil, e.Wrap("failed to load places", err)
+	}
+
+	if len(places) == 0 {
+		return nil, errors.New("no places found")
+	}
+
+	origin := haversine.Coord{Lat: latitude, Lon: longitude}
+
+	var nearest *Place
+	minDistance := math.MaxFloat64
+
+	for i, p := range places {
+		destination := haversine.Coord{Lat: p.Latitude, Lon: p.Longitude}
+		km, _ := haversine.Distance(origin, destination)
+		if km < minDistance {
+			minDistance = km
+			nearest = &places[i]
+		}
+	}
+
+	return nearest, nil
 }
