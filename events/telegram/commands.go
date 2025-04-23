@@ -8,25 +8,35 @@ import (
 )
 
 const (
-	HelpCmd         = "/help"
-	StartCmd        = "/start"
-	GetDistrictsCmd = "/getDistricts"
-	GetPlacesCmd    = "/getPlaces"
-	SendDistrictCmd = "/sendDistrict"
-	PlaceCmd        = "/place"
-	DeleteCmd       = "/delete"
-	batchButSize    = 4
+	HelpCmd            = "/help"
+	StartCmd           = "/start"
+	GetDistrictsCmd    = "/getDistricts"
+	GetPlacesCmd       = "/getPlaces"
+	SendDistrictCmd    = "/sendDistrict"
+	PlaceCmd           = "/place"
+	RequestLocationCmd = "/requestLocation"
+	LocationHelpCmd    = "/locationHelp"
+	DeleteCmd          = "/delete"
+	batchButSize       = 4
 )
 
-func (p *Processor) doCmd(cmd string, chatID int, username string) error {
+func (p *Processor) doCmd(cmd string, meta events.Meta) error {
 
-	log.Printf("got new command: %s, from: %s", cmd, username)
+	log.Printf("got new command: %s, from: %s", cmd, meta.Username)
 
 	switch cmd {
 	case StartCmd:
-		return p.sendHello(chatID)
+		return p.sendHello(meta.ChatID)
+
+	case RequestLocationCmd:
+		nearPlace, err := p.storage.FindNearPlace(meta.Latitude, meta.Longitude)
+		if err != nil {
+			return err
+		}
+		return p.sendPlace(meta.ChatID, int(nearPlace.ID))
+
 	default:
-		return p.tgSender.SendNoButtonsMessage(chatID, MsgUnknown)
+		return p.tgSender.SendNoButtonsMessage(meta.ChatID, MsgUnknown)
 	}
 }
 
@@ -37,6 +47,9 @@ func (p *Processor) doCallbackCmd(cmd events.Command, chatID int, username strin
 	switch cmd.Cmd {
 	case StartCmd:
 		return p.editToHello(chatID, messageID)
+
+	case LocationHelpCmd:
+		return p.editToLocationHelp(chatID, messageID)
 
 	case HelpCmd:
 		return p.editToHelp(chatID, messageID)
@@ -63,6 +76,7 @@ func (p *Processor) doCallbackCmd(cmd events.Command, chatID int, username strin
 
 func (p *Processor) sendHello(chatID int) error {
 
+	locationHelpCmd := events.Command{Cmd: LocationHelpCmd}
 	getDistrictsCmd := events.Command{Cmd: GetDistrictsCmd}
 	helpCmd := events.Command{Cmd: HelpCmd}
 
@@ -71,8 +85,26 @@ func (p *Processor) sendHello(chatID int) error {
 		telegram.InlineKeyboardMarkup{
 			InlineKeyboard: [][]telegram.InlineKeyboardButton{
 				{
+					{Text: LocationBut, CallbackData: events.EncodeCommands(locationHelpCmd)},
+				},
+				{
 					{Text: DistrictsBut, CallbackData: events.EncodeCommands(getDistrictsCmd)},
 					{Text: HelpBut, CallbackData: events.EncodeCommands(helpCmd)},
+				},
+			},
+		},
+	)
+}
+
+func (p *Processor) editToLocationHelp(chatID int, messageID int) error {
+
+	startCmd := events.Command{Cmd: StartCmd}
+
+	return p.tgSender.EditMessage(chatID, messageID, MsgLocationHelp,
+		telegram.InlineKeyboardMarkup{
+			InlineKeyboard: [][]telegram.InlineKeyboardButton{
+				{
+					{Text: BackBut, CallbackData: events.EncodeCommands(startCmd)},
 				},
 			},
 		},
@@ -96,6 +128,7 @@ func (p *Processor) editToHelp(chatID int, messageID int) error {
 
 func (p *Processor) editToHello(chatID int, messageID int) error {
 
+	locationHelpCmd := events.Command{Cmd: LocationHelpCmd}
 	getDistrictsCmd := events.Command{Cmd: GetDistrictsCmd}
 	helpCmd := events.Command{Cmd: HelpCmd}
 
@@ -103,6 +136,9 @@ func (p *Processor) editToHello(chatID int, messageID int) error {
 		MsgHello,
 		telegram.InlineKeyboardMarkup{
 			InlineKeyboard: [][]telegram.InlineKeyboardButton{
+				{
+					{Text: LocationBut, CallbackData: events.EncodeCommands(locationHelpCmd)},
+				},
 				{
 					{Text: DistrictsBut, CallbackData: events.EncodeCommands(getDistrictsCmd)},
 					{Text: HelpBut, CallbackData: events.EncodeCommands(helpCmd)},
