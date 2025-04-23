@@ -24,6 +24,7 @@ type Type int
 const (
 	Unknown Type = iota
 	Message
+	Location
 	Callback
 )
 
@@ -34,9 +35,11 @@ type Event struct {
 }
 
 type Meta struct {
-	ChatId    int
+	ChatID    int
 	Username  string
 	MessageID int
+	Latitude  float64
+	Longitude float64
 }
 
 func (event Event) GetMeta() (Meta, error) {
