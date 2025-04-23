@@ -99,7 +99,7 @@ func (p *Processor) processCallback(event events.Event) error {
 	commands := events.DecodeCommands(event.Text)
 
 	for _, command := range commands {
-		if err := p.doCallbackCmd(command, meta.ChatID, meta.Username, meta.MessageID); err != nil {
+		if err := p.doCallbackCmd(command, meta); err != nil {
 			return e.Wrap("can't process callback", err)
 		}
 	}

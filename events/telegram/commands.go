@@ -40,37 +40,37 @@ func (p *Processor) doCmd(cmd string, meta events.Meta) error {
 	}
 }
 
-func (p *Processor) doCallbackCmd(cmd events.Command, chatID int, username string, messageID int) error {
+func (p *Processor) doCallbackCmd(cmd events.Command, meta events.Meta) error {
 
-	log.Printf("got new callback: %s, from: %s", cmd.Cmd, username)
+	log.Printf("got new callback: %s, from: %s", cmd.Cmd, meta.Username)
 
 	switch cmd.Cmd {
 	case StartCmd:
-		return p.editToHello(chatID, messageID)
+		return p.editToHello(meta.ChatID, meta.MessageID)
 
 	case LocationHelpCmd:
-		return p.editToLocationHelp(chatID, messageID)
+		return p.editToLocationHelp(meta.ChatID, meta.MessageID)
 
 	case HelpCmd:
-		return p.editToHelp(chatID, messageID)
+		return p.editToHelp(meta.ChatID, meta.MessageID)
 
 	case GetDistrictsCmd:
-		return p.editToDistricts(chatID, messageID, cmd.Batch)
+		return p.editToDistricts(meta.ChatID, meta.MessageID, cmd.Batch)
 
 	case GetPlacesCmd:
-		return p.editToDistrict(chatID, messageID, int(cmd.DistrictID), cmd.Batch)
+		return p.editToDistrict(meta.ChatID, meta.MessageID, int(cmd.DistrictID), cmd.Batch)
 
 	case SendDistrictCmd:
-		return p.sendDistrict(chatID, int(cmd.DistrictID))
+		return p.sendDistrict(meta.ChatID, int(cmd.DistrictID))
 
 	case PlaceCmd:
-		return p.sendPlace(chatID, int(cmd.PlaceID))
+		return p.sendPlace(meta.ChatID, int(cmd.PlaceID))
 
 	case DeleteCmd:
-		return p.tgSender.DeleteMessage(chatID, messageID)
+		return p.tgSender.DeleteMessage(meta.ChatID, meta.MessageID)
 
 	default:
-		return p.tgSender.SendNoButtonsMessage(chatID, CallbackUnknown)
+		return p.tgSender.SendNoButtonsMessage(meta.ChatID, CallbackUnknown)
 	}
 }
 
