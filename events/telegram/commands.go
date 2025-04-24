@@ -155,7 +155,7 @@ func (p *Processor) editToDistricts(chatID int, messageID int, batchNum int) err
 	}
 
 	startCmd := events.Command{Cmd: StartCmd}
-	keyboard := make([][]telegram.InlineKeyboardButton, 0, batchButSize+1)
+	keyboard := make([][]telegram.InlineKeyboardButton, 0, min(batchButSize, len(districts)-(batchNum*batchButSize))+1)
 
 	for i := batchNum * batchButSize; i < (batchNum+1)*batchButSize && i < len(districts); i++ {
 		keyboard = append(keyboard, []telegram.InlineKeyboardButton{{Text: districts[i].Name, CallbackData: events.EncodeCommands(events.Command{
@@ -164,7 +164,7 @@ func (p *Processor) editToDistricts(chatID int, messageID int, batchNum int) err
 		})}})
 	}
 
-	backForwardKeys := make([]telegram.InlineKeyboardButton, 0, 2)
+	var backForwardKeys []telegram.InlineKeyboardButton
 
 	if batchNum > 0 {
 		backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: BackBut, CallbackData: events.EncodeCommands(events.Command{
@@ -172,7 +172,7 @@ func (p *Processor) editToDistricts(chatID int, messageID int, batchNum int) err
 			Batch: batchNum - 1,
 		})})
 	} else {
-		keyboard = append(keyboard, []telegram.InlineKeyboardButton{{Text: BackBut, CallbackData: events.EncodeCommands(startCmd)}})
+		backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: BackBut, CallbackData: events.EncodeCommands(startCmd)})
 	}
 
 	if (batchNum+1)*batchButSize < len(districts) {
@@ -198,7 +198,7 @@ func (p *Processor) editToDistrict(chatID int, messageID int, districtID int, ba
 	}
 
 	deleteCmd := events.Command{Cmd: DeleteCmd}
-	keyboard := make([][]telegram.InlineKeyboardButton, 0, batchButSize+1)
+	keyboard := make([][]telegram.InlineKeyboardButton, 0, min(batchButSize, len(district.Places)-(batchNum*batchButSize))+1)
 
 	for i := batchNum * batchButSize; i < (batchNum+1)*batchButSize && i < len(district.Places); i++ {
 		keyboard = append(keyboard, []telegram.InlineKeyboardButton{{Text: district.Places[i].Name, CallbackData: events.EncodeCommands(deleteCmd, events.Command{
@@ -207,7 +207,7 @@ func (p *Processor) editToDistrict(chatID int, messageID int, districtID int, ba
 		})}})
 	}
 
-	backForwardKeys := make([]telegram.InlineKeyboardButton, 0, 2)
+	var backForwardKeys []telegram.InlineKeyboardButton
 
 	if batchNum > 0 {
 		backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: BackBut, CallbackData: events.EncodeCommands(events.Command{
@@ -245,7 +245,7 @@ func (p *Processor) sendDistrict(chatID int, districtID int) error {
 	}
 
 	deleteCmd := events.Command{Cmd: DeleteCmd}
-	keyboard := make([][]telegram.InlineKeyboardButton, 0, batchButSize+1)
+	keyboard := make([][]telegram.InlineKeyboardButton, 0, min(batchButSize, len(district.Places))+1)
 
 	for i := 0; i < batchButSize && i < len(district.Places); i++ {
 		keyboard = append(keyboard, []telegram.InlineKeyboardButton{{Text: district.Places[i].Name, CallbackData: events.EncodeCommands(deleteCmd, events.Command{
@@ -254,7 +254,7 @@ func (p *Processor) sendDistrict(chatID int, districtID int) error {
 		})}})
 	}
 
-	backForwardKeys := make([]telegram.InlineKeyboardButton, 0, 2)
+	var backForwardKeys []telegram.InlineKeyboardButton
 	backForwardKeys = append(backForwardKeys, telegram.InlineKeyboardButton{Text: BackBut, CallbackData: events.EncodeCommands(events.Command{Cmd: GetDistrictsCmd})})
 
 	if batchButSize < len(district.Places) {
